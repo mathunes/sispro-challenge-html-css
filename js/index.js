@@ -18,10 +18,51 @@ searchForm.addEventListener("submit", (e) => {
 
     const address = addressInput.value.trim();
     const limit = parseInt(limitInput.value);
+
+    toggleBtnSearch(btnSearchLabel, btnSearchLoad);
+
+    clearResults(bikeRackMap, bikeRackList)
+
+    searchBikeRacks(address, limit);
+});
+
+function searchBikeRacks(address, limit) {
     const sqlQuery = `SELECT * FROM "e6e4ac72-ff15-4c5a-b149-a1943386c031" WHERE localizacao LIKE '%${address}%' LIMIT ${limit}`;
 
-    btnSearchLabel.style.display = "none";
-    btnSearchLoad.style.display = "block";
+    fetch(encodeURI(endpointUrl + endpointAction + sqlQuery))
+        .then(response => response.json())
+        .then(data => {
+            renderRecords(data.result.records);
+        })
+        .catch(error => console.error(error));
+}
+
+function renderRecords(records) {
+    if (records.length == 0) {
+        const li = document.createElement("li");
+        li.appendChild(document.createTextNode("Nenhum bicicletário encontrado nesse endereço."));
+        bikeRackList.appendChild(li);
+    } else {
+        records.forEach(record => {
+            const li = document.createElement("li");
+            li.appendChild(document.createTextNode(record.nome));
+            bikeRackList.appendChild(li);
+
+            L.marker([record.latitude, record.longitude])
+                .addTo(bikeRackMap)
+                .bindPopup(`<b>${record.nome}</b><br>${record.localizacao}`);
+        });
+    }
+
+    toggleBtnSearch(btnSearchLabel, btnSearchLoad);
+}
+
+function toggleBtnSearch(btnSearchLabel, btnSearchLoad) {
+    (btnSearchLabel.style.display == "none") ? btnSearchLabel.style.display = "block" : btnSearchLabel.style.display = "none";
+    (btnSearchLoad.style.display == "block") ? btnSearchLoad.style.display = "none" : btnSearchLoad.style.display = "block";
+}
+
+function clearResults(bikeRackMap, bikeRackList) {
     bikeRackListContainer.style.display = "block";
 
     bikeRackMap.eachLayer((layer) => {
@@ -31,30 +72,4 @@ searchForm.addEventListener("submit", (e) => {
     });
 
     bikeRackList.innerHTML = "<ul id=\"bike-rack-list\"></ul>";
-
-    fetch(encodeURI(endpointUrl + endpointAction + sqlQuery))
-        .then(response => response.json())
-        .then(data => {
-            const records = data.result.records;
-
-            if (records.length == 0) {
-                let li = document.createElement("li");
-                li.appendChild(document.createTextNode("Nenhum bicicletário encontrado nesse endereço."));
-                bikeRackList.appendChild(li);
-            } else {
-                data.result.records.forEach(record => {
-                    let li = document.createElement("li");
-                    li.appendChild(document.createTextNode(record.nome));
-                    bikeRackList.appendChild(li);
-
-                    L.marker([record.latitude, record.longitude])
-                        .addTo(bikeRackMap)
-                        .bindPopup(`<b>${record.nome}</b><br>${record.localizacao}`);
-                });
-            }
-
-            btnSearchLabel.style.display = "block";
-            btnSearchLoad.style.display = "none";
-        })
-        .catch(error => console.error(error));
-});
+}
