@@ -1,4 +1,4 @@
-const endpointUrl = "https://dados.recife.pe.gov.br/api/3/action/";
+const endpointUrl = "http://dados.recife.pe.gov.br/api/3/action/";
 const endpointAction = "datastore_search_sql?sql=";
 
 const searchForm = document.getElementById("search-form");
