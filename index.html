@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
+    <title>Bike Recife</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,15 +44,21 @@
                 </div>
             </div>
 
-            <button type="submit" id="btn-search" class="btn btn-primary mb-4">Buscar</button>
+            <button type="submit" id="btn-search" class="btn btn-primary mb-4">
+                <div id="btn-search-load" style="display: none;">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Carregando...
+                </div>
+                <span id="btn-search-label">Buscar</span>
+            </button>
         </form>
 
         <div class="row d-flex justify-content-center">
-            <div class="col-5" id="bike-rack-list-container" style="display: none">
+            <div class="col-md-5" id="bike-rack-list-container" style="display: none">
                 <h2>Bicletários mais próximos</h2>
                 <ul id="bike-rack-list"></ul>
             </div>
-            <div class="col-7">
+            <div class="col-md-7">
                 <div id="map" style="width: 100%; height: 350px;"></div>
             </div>
         </div>
@@ -63,62 +69,7 @@
         integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
         crossorigin="anonymous"></script>
 
-    <script>
-        const endpointUrl = "http://dados.recife.pe.gov.br/api/3/action/";
-        const endpointAction = "datastore_search_sql?sql=";
-
-        const searchForm = document.getElementById("search-form");
-        const addressInput = document.getElementById("address");
-        const limitInput = document.getElementById("limit");
-        const bikeRackList = document.getElementById("bike-rack-list");
-        const bikeRackListContainer = document.getElementById("bike-rack-list-container");
-
-        const bikeRackMap = L.map('map').setView([-8.05428, -34.8813], 11);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(bikeRackMap);
-
-        searchForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-
-            const address = addressInput.value.trim();
-            const limit = parseInt(limitInput.value);
-            const sqlQuery = `SELECT * FROM "e6e4ac72-ff15-4c5a-b149-a1943386c031" WHERE localizacao LIKE '%${address}%' LIMIT ${limit}`;
-            
-            bikeRackListContainer.style.display = "block";
-
-            bikeRackMap.eachLayer((layer) => {
-                if (layer instanceof L.Marker) {
-                    bikeRackMap.removeLayer(layer);
-                }
-            });
-
-            bikeRackList.innerHTML = "<ul id=\"bike-rack-list\"></ul>";
-
-            fetch(encodeURI(endpointUrl + endpointAction + sqlQuery))
-                .then(response => response.json())
-                .then(data => {
-                    const records = data.result.records;
-
-                    if (records.length == 0) {
-                        let li = document.createElement("li");
-                        li.appendChild(document.createTextNode("Nenhum bicicletário encontrado nesse endereço."));
-                        bikeRackList.appendChild(li);
-                        return;
-                    }
-
-                    data.result.records.forEach(record => {
-                        let li = document.createElement("li");
-                        li.appendChild(document.createTextNode(record.nome));
-                        bikeRackList.appendChild(li);
-
-                        L.marker([record.latitude, record.longitude])
-                            .addTo(bikeRackMap)
-                            .bindPopup(`<b>${record.nome}</b><br>${record.localizacao}`);
-                    });
-                })
-                .catch(error => console.error(error));
-        });
-    </script>
+    <script src="js/index.js"></script>
 </body>
 
 </html>
